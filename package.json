@@ -1,0 +1,28 @@
+{
+  "name": "cider-di",
+  "version": "1.0.0",
+  "description": "Minimal Dependency Injection Framework in the Vein of Guice",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chris-pardy/cider-di.git"
+  },
+  "keywords": [
+    "Dependency",
+    "Injection",
+    "Guice",
+    "DI"
+  ],
+  "author": "chris.pardy@gmail.com",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/chris-pardy/cider-di/issues"
+  },
+  "homepage": "https://github.com/chris-pardy/cider-di#readme",
+  "devDependencies": {
+    "jest": "^20.0.3"
+  }
+}
