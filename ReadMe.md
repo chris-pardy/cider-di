@@ -1,6 +1,6 @@
 Super simple dependency injection for javascript.
 
-== Standard Use ==
+## Standard Use
 Import cider:
 `var cider = require('cider-di');`
 
@@ -30,7 +30,7 @@ Create a child injector using the child function:
 
 A child injector will inherit bindings but won't expose binding to the parent.
 
-== Provider Helpers ==
+## Provider Helpers
 Sometimes you don't want to write out a long provider function, instead use a helper:
 
 Alias one binding to another:
@@ -48,6 +48,6 @@ Get a list of values:
 Get an object with values:
 `bind('service').to(cider.obj({my: cider.alias('my_service'), your: cider.alias('your_service')}));`
 
-== Overriding bindings ==
+## Overriding bindings
 You can create a binding override by specifying overridden modules:
 `var injector = cider(cider.override(... module functions ...).with(... module functions... ));`
