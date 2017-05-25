@@ -1,3 +1,11 @@
 language: node_js
 node_js:
-  - "7"
+- '7'
+deploy:
+  provider: npm
+  email: "chris.pardy@gmail.com"
+  on:
+    tags: true
+    branch: master
+  api_key:
+    secure: yUWvlhzsqpTaR83en3VRy7BnEuFfXicStmTy5u4/+eJQ2Gld0AIdd5juvbdI+hhSy5BYALPFb+AXFuxLwTAWxGmdoYAMo/UrybM8LgXzyRzllo0sN+uuJvMNwczEtAp1c95weAXx2rdTFcQgSl71kYWj9P8n6A4icfplHtBb5LHUEV2/RrDP2MbdgGcZA6mlwDCmpShDHmXycCysM5BAZVRL5PQPGveR9yffONsBzz3eR1gAgFfkmUE3wlJ10c3c06EVB2SN8cSoseH9TQnpFaQclvL9ZKU7g8VxKa0D4N3woLHdekug1ZlLaXxwvhApfQJUYzGwhXPaxWJpE+3yrdkVH8DH3Evh5ayxPu4koigk0l3i3dpDu2pn8CUP5lWqRoxfatEixpAHrsAN22FfTQBoKnvwO55RACVo1MpJpcGF++FcfqSFGIG/LYpkzwm+h+mgRdRVANgBIuzmLkJAABTml/cblcyHEGr3hZw/km6W8ulmgelZDmIWvlTuJj3/5rKC3FCFNOgCeQPvKUzloSXyIsvWfmXPkSvOwGCPycZrRUUH8ARgfvPXmLgCTX6fLl4Uu2IF4V8Z2dY0D/1sRsP6xrw5AVuRXqFngCS+ZfO91clHvG17O8M5LDpEfF5I/kP+pEuSurTgah8EWwP7NKGyan6th8Ibyrdto1i0R70=
