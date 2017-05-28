@@ -1,53 +1,146 @@
-Super simple dependency injection for javascript.
+[![Build Status](https://travis-ci.org/chris-pardy/cider-di.svg?branch=master)](https://travis-ci.org/chris-pardy/cider-di)
+#cider
+Super simple dependency injection.
 
-## Standard Use
-Import cider:
-`var cider = require('cider-di');`
+## Installation
+```npm install --save cider-di```
 
-Then create an injector with specified module functions:
-`var injector = cider(... module functions ...);`
-
-Then get dependencies from the injector:
-`var service = injector('my_service');`
-
-Use module functions to define bindings:
+## Use
 ```
-function module(bind) {
-  bind('my_service').to(... providers ...);
+const service = require('./service');
+const database = require('./database');
+const cider = require('cider-di');
+const injector = cider(
+  (bind) => {
+    bind('service').to(cider.singleton((inject) => new service(inject('database'))));
+  }, (bind) => {
+    bind('database').to(cider.singleton((inject) => new database()));
+  });
+const my_service = injector('service');
+```
+Cider uses named bindings to create a map of name to provider function.
+Each provider function is supplied an injector which can be used to fetch dependencies.
+
+## Components
+### cider([...modules])
+* `modules` function
+
+Takes 0 or more functions which act as module definitions, each module is passed
+an argument `bind` which is used to declare dependencies. Returns an `injector`.
+
+### cider.singleton(provider)
+* `provider` function
+
+Given a provider function ensures that the function is only called once for each
+injector instance that it's used from. Returns a `provider`.
+```
+bind('my_service').to(cider.singleton((inject) => new service(inject('dependency'))));
+```
+
+### cider.instance(value)
+* `value` any
+
+Given a value create a provider that will provide that value. Returns a `provider`.
+```
+bind('should_run').to(cider.instance(false));
+```
+
+### cider.alias(name)
+* `name` string
+
+Given a name creates a provider that provides the value bound to that name.
+This acts as a way to alias bindings. Returns a `provider`.
+```
+bind('database').to(cider.alias('postgres'));
+```
+
+### cider.list(providers)
+* `providers` array of providers
+
+Given an array of providers creates a provider that returns a list of the bound
+values, maintaining order. Returns a `provider`.
+```
+bind('options').to(cider.list([
+  cider.alias('should_run'),
+  cider.alias('is_production')
+]));
+```
+
+### cider.obj(providers)
+* `providers` Object of providers
+
+Given an object containing a mapping of keys to providers, creates a provider that
+returns an object with the bound values mapped to the keys. Returns a `provider`.
+```
+bind('options').to(cider.obj({
+    should_run: cider.alias('should_run'),
+    is_production: cider.alias('is_production')
+}));
+```
+
+### cider.override([...override_modules]).with([...with_modules])
+* `override_modules` function
+* `with_modules` function
+
+Given 2 sets of modules allows `with_modules` to define bindings that have already
+been defined by the `override_modules` overriding these values. Returns a `module`.
+```
+const my_module = (bind) => { bind('is_production').to(cider.instance(true)); };
+const injector = cider(cider.override(
+    my_module, your_module
+  ).with(
+    (bind) => {
+        bind('is_production').to(cider.instance(false));
+    })
+  );
+```
+
+### injector(name[,...args])
+* `name` string
+* `args` any
+
+Given a name resolve the provider bound to the name and invoke it with the given args.
+Returns the result of the provider.
+```
+const db = injector('database',table_name);
+```
+
+### injector.child([...modules])
+* `modules` function
+
+Creates a child injector, with new modules. Providers bound for the child injector
+are only accessible from the child injector, but providers bound for a parent injector
+are available through the child. Singletons bound to the child are scoped to the child.
+Returns an `injector`
+```
+function add_injector(req,resp,next) {
+  if(!req.injector) {
+    req.injector = injector.child(requestModule);
+  }
+  next();
 }
 ```
 
-Providers take an inject, name, and pass through args:
+### *bind*(name).to(provider)
+* `name` string
+* `provider` function
+
+Specify a binding from the `name` to the `provider`.
 ```
-function my_service_provider(injector, name, other_arg) {
-  var other_service = injector('your_service');
-  return my_service_constructor(other_arg, other_service);
+function module (bind) {
+    bind('my_service').to((inject) => new service(inject('database')));
 }
 ```
 
-Create a child injector using the child function:
-`var child_injector = injector.child(... child module functions ...);`
+### *module*(bind)
+* `bind` function
 
-A child injector will inherit bindings but won't expose binding to the parent.
+A module is simply a function that takes a single argument, `bind`.
 
-## Provider Helpers
-Sometimes you don't want to write out a long provider function, instead use a helper:
+### *provider*([inject[,name[,...args]]])
+* `inject` function
+* `name` string
+* `args` any
 
-Alias one binding to another:
-`bind('my_service').to(cider.alias('your_service'));`
-
-Bind to an instance value:
-`bind('my_service').to(cider.instance(service_instance));`
-
-Turn a provider into a singleton:
-`bind('my_service').to(cider.singleton(instance_provider));`
-
-Get a list of values:
-`bind('services').to(cider.list([cider.alias('my_service'), cider.alias('your_service')]));`
-
-Get an object with values:
-`bind('service').to(cider.obj({my: cider.alias('my_service'), your: cider.alias('your_service')}));`
-
-## Overriding bindings
-You can create a binding override by specifying overridden modules:
-`var injector = cider(cider.override(... module functions ...).with(... module functions... ));`
+A provider is a function that takes an inject function, the name of the binding
+to provide and any additional arguments that were passed when the binding was requested.
