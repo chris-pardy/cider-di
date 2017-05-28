@@ -29,7 +29,7 @@ Takes 0 or more functions which act as module definitions, each module is passed
 an argument `bind` which is used to declare dependencies. Returns an `injector`.
 
 ### cider.singleton(provider)
-* `provider` [function](#providerinjectnameargs)
+* `provider` [function](#providerinjectargs)
 
 Given a provider function ensures that the function is only called once for each
 injector instance that it's used from. Returns a `provider`.
@@ -55,7 +55,7 @@ bind('database').to(cider.alias('postgres'));
 ```
 
 ### cider.list(providers)
-* `providers` array of [providers](#providerinjectnameargs)
+* `providers` array of [providers](#providernameargs)
 
 Given an array of providers creates a provider that returns a list of the bound
 values, maintaining order. Returns a `provider`.
@@ -67,7 +67,7 @@ bind('options').to(cider.list([
 ```
 
 ### cider.obj(providers)
-* `providers` Object of [providers](#providerinjectnameargs)
+* `providers` Object of [providers](#providernameargs)
 
 Given an object containing a mapping of keys to providers, creates a provider that
 returns an object with the bound values mapped to the keys. Returns a `provider`.
@@ -123,7 +123,7 @@ function add_injector(req,resp,next) {
 
 ### *bind*(name).to(provider)
 * `name` string
-* `provider` [function](#providerinjectnameargs)
+* `provider` [function](#providerinjectargs)
 
 Specify a binding from the `name` to the `provider`.
 ```
@@ -137,11 +137,10 @@ function module (bind) {
 
 A module is simply a function that takes a single argument, `bind`.
 
-### *provider*([inject[,name[,...args]]])
+### *provider*([inject[,...args]])
 * `inject` [function](#injectornameargs)
-* `name` string
 * `args` any
 
-A provider is a function that takes an inject function, the name of the binding
-to provide and any additional arguments that were passed when the binding was requested.
-The inject function is an injector and can be used to fetch dependency from the provider.
+A provider is a function that takes an inject function and any additional arguments
+that were passed when the binding was requested. The inject function is an injector
+and can be used to fetch dependency from the provider.
