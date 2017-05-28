@@ -23,13 +23,13 @@ Each provider function is supplied an injector which can be used to fetch depend
 
 ## Components
 ### cider([...modules])
-* `modules` function
+* `modules` [function](#modulebind)
 
 Takes 0 or more functions which act as module definitions, each module is passed
 an argument `bind` which is used to declare dependencies. Returns an `injector`.
 
 ### cider.singleton(provider)
-* `provider` function
+* `provider` [function](#providerinjectnameargs)
 
 Given a provider function ensures that the function is only called once for each
 injector instance that it's used from. Returns a `provider`.
@@ -55,7 +55,7 @@ bind('database').to(cider.alias('postgres'));
 ```
 
 ### cider.list(providers)
-* `providers` array of providers
+* `providers` array of [providers](#providerinjectnameargs)
 
 Given an array of providers creates a provider that returns a list of the bound
 values, maintaining order. Returns a `provider`.
@@ -67,7 +67,7 @@ bind('options').to(cider.list([
 ```
 
 ### cider.obj(providers)
-* `providers` Object of providers
+* `providers` Object of [providers](#providerinjectnameargs)
 
 Given an object containing a mapping of keys to providers, creates a provider that
 returns an object with the bound values mapped to the keys. Returns a `provider`.
@@ -79,8 +79,8 @@ bind('options').to(cider.obj({
 ```
 
 ### cider.override([...override_modules]).with([...with_modules])
-* `override_modules` function
-* `with_modules` function
+* `override_modules` [function](#modulebind)
+* `with_modules` [function](#modulebind)
 
 Given 2 sets of modules allows `with_modules` to define bindings that have already
 been defined by the `override_modules` overriding these values. Returns a `module`.
@@ -106,7 +106,7 @@ const db = injector('database',table_name);
 ```
 
 ### injector.child([...modules])
-* `modules` function
+* `modules` [function](#modulebind)
 
 Creates a child injector, with new modules. Providers bound for the child injector
 are only accessible from the child injector, but providers bound for a parent injector
@@ -123,7 +123,7 @@ function add_injector(req,resp,next) {
 
 ### *bind*(name).to(provider)
 * `name` string
-* `provider` function
+* `provider` [function](#providerinjectnameargs)
 
 Specify a binding from the `name` to the `provider`.
 ```
@@ -133,12 +133,12 @@ function module (bind) {
 ```
 
 ### *module*(bind)
-* `bind` function
+* `bind` [function](#bindnametoprovider)
 
 A module is simply a function that takes a single argument, `bind`.
 
 ### *provider*([inject[,name[,...args]]])
-* `inject` function
+* `inject` [function](#injectornameargs)
 * `name` string
 * `args` any
 
