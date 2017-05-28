@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/chris-pardy/cider-di.svg?branch=master)](https://travis-ci.org/chris-pardy/cider-di)
-#cider
+# cider
 Super simple dependency injection.
 
 ## Installation
@@ -144,3 +144,4 @@ A module is simply a function that takes a single argument, `bind`.
 
 A provider is a function that takes an inject function, the name of the binding
 to provide and any additional arguments that were passed when the binding was requested.
+The inject function is an injector and can be used to fetch dependency from the provider.
