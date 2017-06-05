@@ -188,3 +188,6 @@ function module(bind) {
   });
 }
 ```
+
+### SPI and child injectors
+An extension is invoked once for each injector construction, therefore an extension may be invoked multiple times if child injectors are created. 
