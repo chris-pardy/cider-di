@@ -1,6 +1,7 @@
 language: node_js
-node_js:
-- '7'
+before_deploy:
+  - yarn package
+  - cd lib
 deploy:
   provider: npm
   email: "chris.pardy@gmail.com"

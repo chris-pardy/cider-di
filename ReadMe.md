@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/chris-pardy/cider-di.svg?branch=master)](https://travis-ci.org/chris-pardy/cider-di)
 # cider
-Super simple dependency injection.
+Super simple dependency inversion/injection for javascript.
 
 ## Installation
 ```npm install --save cider-di```
@@ -10,137 +10,145 @@ Super simple dependency injection.
 const service = require('./service');
 const database = require('./database');
 const cider = require('cider-di');
-const injector = cider(
-  (bind) => {
-    bind('service').to(cider.singleton((inject) => new service(inject('database'))));
-  }, (bind) => {
-    bind('database').to(cider.singleton((inject) => new database()));
-  });
-const my_service = injector('service');
+const injector = cider.createInjector({
+  service: cider.singleton(
+    ({database}) => new service(database)
+  ),
+  database: cider.singleton(
+    () => new database()
+  )
+});
+const my_service = injector.dependencies.service;
 ```
-Cider uses named bindings to create a map of name to provider function.
-Each provider function is supplied an injector which can be used to fetch dependencies.
+Cider uses named bindings to create a map of name to *binding* function.
+Each *binding* function is supplied 3 values.
+* dependencies - an object where each key corresponds to provided value.
+* providers - an object where each key corresponds to a *provider*.
+* context - a javascript object that can be used for providers to communicate with each other.
 
 ## Components
-### cider([...modules])
-* `modules` [function](#modulebind)
+### cider.createInjector(module)
+* `module` [function](#Module)
 
-Takes 0 or more functions which act as module definitions, each module is passed
-an argument `bind` which is used to declare dependencies. Returns an `injector`.
+Returns [`injector`](#Injector)
 
-### cider.singleton(provider)
-* `provider` [function](#providerinjectargs)
+Takes 0 or more functions which act as module definitions, each module is passed an argument `bind` which is used to declare dependencies.
 
-Given a provider function ensures that the function is only called once for each
-injector instance that it's used from. Returns a `provider`.
+### cider.singleton(binding)
+* `binding` [binding](#Bindingdependenciesproviderscontext)
+
+Returns [binding](#Bindingdependenciesproviderscontext)
+
+Given a binding function ensures that the function is only called once for each injector instance that it's used from.
 ```
-bind('my_service').to(cider.singleton((inject) => new service(inject('dependency'))));
+my_service: cider.singleton(
+  ({dependency}) => new service(dependency)
+)
 ```
 
 ### cider.instance(value)
 * `value` any
 
-Given a value create a provider that will provide that value. Returns a `provider`.
+Returns [`binding`](#Bindingdependenciesproviderscontext)
+
+Given a value create a binding that will provide that value.
 ```
-bind('should_run').to(cider.instance(false));
+should_run: cider.instance(false)
 ```
 
 ### cider.alias(name)
 * `name` string
 
-Given a name creates a provider that provides the value bound to that name.
-This acts as a way to alias bindings. Returns a `provider`.
+Returns [`binding`](#Bindingdependenciesproviderscontext)
+
+Given a name creates a binding that provides the value bound to that name. This acts as a way to alias bindings. Note that tags won't be transferred.
 ```
-bind('database').to(cider.alias('postgres'));
+database: cider.alias('postgres')
 ```
 
-### cider.list(providers)
-* `providers` array of [providers](#providernameargs)
+### cider.tagged(tags, binding)
+* `tags` string[],
+* binding [`binding`](#Bindingdependenciesproviderscontext)
 
-Given an array of providers creates a provider that returns a list of the bound
-values, maintaining order. Returns a `provider`.
-```
-bind('options').to(cider.list([
-  cider.alias('should_run'),
-  cider.alias('is_production')
-]));
-```
+Returns [`binding`](#Bindingdependenciesproviderscontext)
 
-### cider.obj(providers)
-* `providers` Object of [providers](#providernameargs)
-
-Given an object containing a mapping of keys to providers, creates a provider that
-returns an object with the bound values mapped to the keys. Returns a `provider`.
+Given a set of tags and a binding, returns a binding with the given set of tags appended to the tags on the given binding.
 ```
-bind('options').to(cider.obj({
-    should_run: cider.alias('should_run'),
-    is_production: cider.alias('is_production')
-}));
+  stripe_processor: cider.tagged(
+    ['payment_processor'],
+    cider.singleton(
+      () => new Stripe()
+    )
+  )
 ```
 
-### cider.override([...override_modules]).with([...with_modules])
-* `override_modules` [function](#modulebind)
-* `with_modules` [function](#modulebind)
+### Module
+#### properties
+* [`name` string] [`binding`](#Bindingdependenciesproviderscontext)
 
-Given 2 sets of modules allows `with_modules` to define bindings that have already
-been defined by the `override_modules` overriding these values. Returns a `module`.
+A module is a standard javascript object with a name mapped to a binding.
 ```
-const my_module = (bind) => { bind('is_production').to(cider.instance(true)); };
-const injector = cider(cider.override(
-    my_module, your_module
-  ).with(
-    (bind) => {
-        bind('is_production').to(cider.instance(false));
-    })
-  );
-```
-
-### injector(name[,...args])
-* `name` string
-* `args` any
-
-Given a name resolve the provider bound to the name and invoke it with the given args.
-Returns the result of the provider.
-```
-const db = injector('database',table_name);
-```
-
-### injector.child([...modules])
-* `modules` [function](#modulebind)
-
-Creates a child injector, with new modules. Providers bound for the child injector
-are only accessible from the child injector, but providers bound for a parent injector
-are available through the child. Singletons bound to the child are scoped to the child.
-Returns an `injector`
-```
-function add_injector(req,resp,next) {
-  if(!req.injector) {
-    req.injector = injector.child(requestModule);
-  }
-  next();
+module.exports = {
+  database: () => new Database(),
+  service: cider.singleton(
+    ({database}) => new Service(database)
+  )
 }
 ```
 
-### *bind*(name).to(provider)
-* `name` string
-* `provider` [function](#providerinjectargs)
+### Binding(dependencies,providers,context)
+* `dependencies` [object](#Dependencies)
+* `providers` [object](#Providers)
+* context object
+#### properties
+* `tags` optional string[]
 
-Specify a binding from the `name` to the `provider`.
+Returns any
+
+A binding is given 3 values that can be used to get dependencies, and retuns the value of the dependency.
 ```
-function module (bind) {
-    bind('my_service').to((inject) => new service(inject('database')));
-}
+ some_binding: ({database},{query}, context) => {
+   if (context.should_run_query) {
+     return database.execute(query());
+   }
+   return null;
+ }
 ```
 
-### *module*(bind)
-* `bind` [function](#bindnametoprovider)
+### Dependencies
+#### properties
+* [`name` string] any
 
-A module is simply a function that takes a single argument, `bind`.
+Map of binding name to value;
 
-### *provider*([inject[,...args]])
-* `inject` [function](#injectornameargs)
-* `args` any
+### Providers
+#### properties
+* [`name` string] [`provider`](#provider)
 
-A provider is a function that takes an inject function and any additional arguments
-that were passed when the binding was requested. The inject function is an injector
-and can be used to fetch dependency from the provider.
+Map of binding name to provider;
+
+### Injector
+#### properties
+* `dependencies` [object](#Dependencies)
+* `providers` [object](#Providers)
+* `context` object
+
+Injectors hold all the dependency mappings.
+```
+const db = injector.dependencies.database;
+```
+
+### provider()
+#### properties
+* `tags` string[]
+
+Returns any
+
+A function that when called supplies the value as a result of invoking the corresponding binding. The tags (if any) that were defined by the corresponding binding will be available on the provider
+
+## Philosophy
+While cider borrowers some terminology from popular Java DI frameworks like Guice it's designed from the ground up to take advantage of javascript features. Primarily this takes the form of using object destructuring in function arguments rather than attempting to provide some form of function annotation.
+
+The [`dependencies`](#Dependencies) parameter that is passed to a binding uses property getters to lazily resolve the dependency chain. Cider does simple cycle detection whenever a dependency is being resolved, this prevents cases of circular dependencies.
+
+The [`providers`](#Providers) parameter contains the same keys as `dependencies` however each value is a function. The result of invoking the function is the same as getting the value of a property on `dependencies`. A Provider should be used whenever possible to lazily initialize a dependency, doing so allows for what would otherwise be unacceptable circular references.
