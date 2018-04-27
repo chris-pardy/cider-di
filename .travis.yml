@@ -5,6 +5,7 @@ before_deploy:
 deploy:
   provider: npm
   email: "chris.pardy@gmail.com"
+  skip_cleanup: true
   on:
     tags: true
     branch: master
